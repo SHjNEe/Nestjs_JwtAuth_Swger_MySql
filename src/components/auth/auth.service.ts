@@ -111,8 +111,8 @@ export class AuthService {
 
   private getToken(
     user: User,
-    tokenType,
-    expires,
+    tokenType : any,
+    expires: any,
     refreshToken = null,
   ): string {
     if (refreshToken) {
@@ -152,7 +152,7 @@ export class AuthService {
 
   public createAccessToken(
     user: User,
-    refreshToken,
+    refreshToken: string,
     expires = config.JWT_TOKEN_EXPIRES,
   ) {
     return this.getToken(user, config.JWT_SECRET, expires, refreshToken);

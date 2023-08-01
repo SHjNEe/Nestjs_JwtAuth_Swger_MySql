@@ -17,7 +17,8 @@ export class AdminService {
   public getList(pagination: any) {
     const { offset = 0, limit = 10, keyword } = pagination;
 
-    const query = this.adminRepository.createQueryBuilder('user')
+    try {
+      const query = this.adminRepository.createQueryBuilder('user')
       .where('user.deleted_at IS NULL')
       .orderBy('user.updated_at', 'DESC')
       .skip(offset)
@@ -31,14 +32,22 @@ export class AdminService {
     }
 
     return query.getManyAndCount();
+    } catch (error) {
+      this.checkMysqlError(error);
+    }
+   
   }
 
   public async getDetail(id: number) {
-    const admin = await this.adminRepository.findOne({ where: { id, deleted_at: IsNull() } });
-    if (!admin) {
-      throw new BadRequestException(ERROR_CODES.ADMIN_NOT_FOUND);
+    try {
+      const admin = await this.adminRepository.findOne({ where: { id, deleted_at: IsNull() } });
+      if (!admin) {
+        throw new BadRequestException(ERROR_CODES.ADMIN_NOT_FOUND);
+      }
+      return admin;
+    } catch (error) {
+      this.checkMysqlError(error);
     }
-    return admin;
   }
 
   public async createNew(body: CreateNewBody) {
@@ -51,23 +60,24 @@ export class AdminService {
     }
   }
 
-  public async update(id: number, body: CreateNewBody) {
+  
+public async update(id: number, body: CreateNewBody) {
+  try {
     const admin = await this.adminRepository.findOne({ where: { id, deleted_at: IsNull() } });
     if (!admin) {
       throw new BadRequestException(ERROR_CODES.ADMIN_NOT_FOUND);
     }
 
-    try {
-      const result: User = await this.adminRepository.save(this.adminRepository.create({
-        ...admin,
-        ...body,
-      }));
+    const result: User = await this.adminRepository.save({
+      ...admin,
+      ...body,
+    });
 
-      return { message: ERROR_CODES.UPDATE_SUCCESSFULLY, id: result.id };
-    } catch (error) {
-      this.checkMysqlError(error);
-    }
+    return { message: ERROR_CODES.UPDATE_SUCCESSFULLY, id: result.id };
+  } catch (error) {
+    this.checkMysqlError(error);
   }
+}
 
   public async delete(id: number) {
     const admin = await this.adminRepository.findOne({ where: { id, deleted_at: IsNull() } });
